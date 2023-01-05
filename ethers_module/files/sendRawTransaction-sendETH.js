@@ -1,8 +1,36 @@
 const ethers = require("ethers");
+const { exit } = require("process");
+require('dotenv').config();
+
+PROVIDER_URL=process.env.PROVIDER_URL;
+PRIVATE_KEY=process.env.PRIVATE_KEY;
+
 (async () => {
-  const provider = new ethers.providers.JsonRpcProvider("HTTP://172.27.224.1:7545");
+  if (process.argv.length != 4) {
+    console.error('Expected at least two arguments!');
+    process.exit(1);
+  }
+
+  console.log(process.argv);
+
+  const toAddress = (process.argv[2] || "") // Read the to address from the arguments, otherwise default to an empty address
+  const value = (process.argv[3] || "0") // Read the value from the arguments, otherwise default to 0
+
+  console.log(typeof(value));
+
+  // Validate toAddress & value were properly initialized
+  if (toAddress == "") {
+    console.log("Error initializing the to address");
+    process.exit()
+  }
+  if (value == "0") {
+    console.log("Error initializing the value to send");
+    process.exit()
+  }
+
+  const provider = new ethers.providers.JsonRpcProvider(PROVIDER_URL);
   // private keys of a ganache account - not a problem at all
-  const wallet = new ethers.Wallet("8b560f49ab01797582a5079ceb2ed5480f9d72c954f2d72e15299f970db365c6");
+  const wallet = new ethers.Wallet(PRIVATE_KEY);
   gasPrice = await provider.getGasPrice()
   
   // Get the nonce of the sender
@@ -10,9 +38,9 @@ const ethers = require("ethers");
 
   let tx = {
     nonce: nonce,
-    to: "0x3782897C2aA7291b148d2C02BB54F7bC84982360",	// account #2
-    value: ethers.utils.parseEther("1"),
-    gasLimit: 6721975,
+    to: toAddress,	// account #2 --> "0x3782897C2aA7291b148d2C02BB54F7bC84982360"
+    value: ethers.utils.parseEther(value),
+    gasLimit: 6721975,  // max block gas limit on ganache
     gasPrice: gasPrice,
   };
 
