@@ -4,6 +4,12 @@ require('dotenv').config();
 
 PROVIDER_URL=process.env.PROVIDER_URL;
 PRIVATE_KEY=process.env.PRIVATE_KEY;
+GAS_LIMIT=process.env.GAS_LIMIT;
+
+/**
+ * @param toAddres -> Expected to receive the address that the transaction will be sent to
+ * @param value -> Expected to receive the value of ETH to transfer
+ */
 
 (async () => {
   if (process.argv.length != 4) {
@@ -11,12 +17,8 @@ PRIVATE_KEY=process.env.PRIVATE_KEY;
     process.exit(1);
   }
 
-  console.log(process.argv);
-
   const toAddress = (process.argv[2] || "") // Read the to address from the arguments, otherwise default to an empty address
   const value = (process.argv[3] || "0") // Read the value from the arguments, otherwise default to 0
-
-  console.log(typeof(value));
 
   // Validate toAddress & value were properly initialized
   if (toAddress == "") {
@@ -29,23 +31,23 @@ PRIVATE_KEY=process.env.PRIVATE_KEY;
   }
 
   const provider = new ethers.providers.JsonRpcProvider(PROVIDER_URL);
-  // private keys of a ganache account - not a problem at all
   const wallet = new ethers.Wallet(PRIVATE_KEY);
-  gasPrice = await provider.getGasPrice()
   
-  // Get the nonce of the sender
+  gasPrice = await provider.getGasPrice()
   nonce = await provider.getTransactionCount(wallet.address);
 
   let tx = {
     nonce: nonce,
-    to: toAddress,	// account #2 --> "0x3782897C2aA7291b148d2C02BB54F7bC84982360"
+    to: toAddress,
     value: ethers.utils.parseEther(value),
-    gasLimit: 6721975,  // max block gas limit on ganache
+    gasLimit: parseInt(GAS_LIMIT),
     gasPrice: gasPrice,
   };
 
   let signedTx = await wallet.signTransaction(tx);
-  console.log(signedTx);
+  //console.log(signedTx);
   let sentTx = await provider.sendTransaction(signedTx);
-  console.log(sentTx);
+  //console.log(sentTx);
+  let txResult = await provider.waitForTransaction(sentTx.hash);
+  console.log("Transaction Result: ", txResult);
 })();
