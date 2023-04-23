@@ -9,3 +9,8 @@ typechain-types
 cache
 artifacts
 
+cache/
+out/
+.vscode
+.idea
+
